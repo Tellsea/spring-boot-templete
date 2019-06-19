@@ -464,10 +464,10 @@
     function search() {
         $("#userTable").bootstrapTable("refresh", {silent: true});
         // 高亮显示关键字，只支持name字段高亮，其余字段测试中
-        $("#userTable").on('post-body.bs.table', function () {
+        /*$("#userTable").on('post-body.bs.table', function () {
             var searchName = $("input[name='searchName']").val();
-            /*var searchEmail = $("input[name='searchEmail']").val();
-            var searchAddress = $("input[name='searchAddress']").val();*/
+            /!*var searchEmail = $("input[name='searchEmail']").val();
+            var searchAddress = $("input[name='searchAddress']").val();*!/
             var tableId = document.getElementById("userTable");
             if (searchName != null) {
                 for (var i = 1; i < tableId.rows.length; i++) {
@@ -478,7 +478,7 @@
                 }
             }
 
-            /*var searchName = $("input[name='searchName']").val();
+            /!*var searchName = $("input[name='searchName']").val();
             var searchEmail = $("input[name='searchEmail']").val();
             var searchAddress = $("input[name='searchAddress']").val();
             var tableId = document.getElementById("userTable");
@@ -505,8 +505,8 @@
                     var cc = bb.replace(new RegExp(searchAddress, 'ig'), displayColor);
                     tableId.rows[i].cells[5].innerHTML = cc;
                 }
-            }*/
-        });
+            }*!/
+        });*/
     }
 </script>
 </html>

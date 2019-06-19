@@ -6,10 +6,10 @@ import tk.mybatis.spring.annotation.MapperScan;
 
 @SpringBootApplication
 @MapperScan("cn.tellsea.mapper")
-public class SpringBootCrudApplication {
+public class SpringBootTempleteApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(SpringBootCrudApplication.class, args);
+        SpringApplication.run(SpringBootTempleteApplication.class, args);
     }
 
 }
