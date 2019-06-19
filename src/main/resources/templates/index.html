@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<div th:replace="/common/head"></div>
+<title>Spring Boot 综合案例</title>
+<body>
+
+<!-- 导航栏 -->
+<div th:replace="/common/header"></div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">关键字搜索</div>
+                <div class="panel-body">
+                    <form class="form-inline">
+                        <div class="form-group">
+                            <label>用户名</label>
+                            <input type="text" class="form-control" name="searchName">
+                        </div>
+                        <div class="form-group">
+                            <label>邮箱</label>
+                            <input type="text" class="form-control" name="searchEmail">
+                        </div>
+                        <div class="form-group">
+                            <label>详细地址</label>
+                            <input type="text" class="form-control" name="searchAddress">
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="search()">
+                            <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                        </button>
+                        <button type="reset" class="btn btn-default">
+                            <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div id="toolbar" class="btn-group">
+                <button type="button" class="btn btn-sm btn-info" onclick="add()">
+                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 新 增
+                </button>
+                <button type="button" class="btn btn-sm btn-danger" onclick="dels()">
+                    <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> 批量删除
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" onclick="window.location.href='/'">
+                    <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span> 刷新数据
+                </button>
+            </div>
+            <table id="userTable"></table>
+        </div>
+    </div>
+</div>
+
+<!-- 所有的模态框 -->
+<div th:replace="/common/modal"></div>
+
+<!-- 所有的js -->
+<div th:replace="/common/js"></div>
+
+</body>
+<script>
+    $(function () {
+        //初始化Table
+        var oTable = new TableInit();
+        oTable.Init();
+        //初始化消息提示位置
+        toastr.options.positionClass = 'toast-center-center';
+    });
+
+    var TableInit = function () {
+        var oTableInit = new Object();
+        oTableInit.Init = function () {
+            $('#userTable').bootstrapTable({
+                locale: 'zh-CN',
+                url: '/user/list',                    //请求后台的URL（*）
+                method: 'get',                      //请求方式（*）
+                contentType: "application/x-www-form-urlencoded",
+                toolbar: '#toolbar',                //工具按钮用哪个容器
+                striped: true,                      //是否显示行间隔色
+                cache: false,                       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+                pagination: true,                   //是否显示分页（*）
+                sortable: false,                    //是否启用排序
+                sortOrder: "asc",                   //排序方式
+                sidePagination: "server",           //分页方式：client客户端分页，server服务端分页（*）
+                pageNumber: 1,                      //初始化加载第一页，默认第一页
+                pageSize: 10,                       //每页的记录行数（*）
+                pageList: [10, 25, 50, 100],        //可供选择的每页的行数（*）
+                //search: true,                     //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+                //searchOnEnterKey: true,           //开启回车搜索
+                //strictSearch: true,               //开启精确搜索
+                showColumns: true,                  //是否显示所有的列
+                showRefresh: true,                  //是否显示刷新按钮
+                minimumCountColumns: 2,             //最少允许的列数
+                clickToSelect: true,                //是否启用点击选中行
+                height: 620,                        //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+                uniqueId: "id",                     //每一行的唯一标识，一般为主键列
+                showToggle: true,                   //是否显示详细视图和列表视图的切换按钮
+                cardView: false,                    //是否显示详细视图
+                detailView: false,                  //是否显示父子表
+                queryParams: function (params) {    //传递参数（*）
+                    return {
+                        limit: params.limit,
+                        offset: params.offset,
+                        name: $("input[name='searchName']").val(),
+                        email: $("input[name='searchEmail']").val(),
+                        address: $("input[name='searchAddress']").val()
+                    };
+                },
+                responseHandler: function (data) {  //在加载服务器发送来的数据之前，处理数据的格式
+                    return {
+                        "total": data.total,
+                        "rows": data.rows
+                    };
+                },
+                columns: [
+                    {
+                        field: 'ids',
+                        checkbox: true
+                    },
+                    {
+                        field: 'id',
+                        title: '编号',
+                        align: 'center'
+                    },
+                    {
+                        field: 'name',
+                        title: '用户名'
+                    },
+                    {
+                        field: 'password',
+                        title: '密码'
+                    },
+                    {
+                        field: 'email',
+                        title: '邮箱'
+                    },
+                    {
+                        field: 'address',
+                        title: '详细地址'
+                    },
+                    {
+                        field: 'operate',
+                        title: '操作',
+                        formatter: function (value, row, index) {
+                            var c = '<button class="btn btn-sm btn-success" onclick="show(\'' + row.id + '\')"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> 查 看</button> ';
+                            var e = '<button class="btn btn-sm btn-warning" onclick="edit(\'' + row.id + '\')"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> 编 辑</button> ';
+                            var d = '<button class="btn btn-sm btn-danger" onclick="del(\'' + row.id + '\')"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span> 删 除</button> ';
+                            return c + e + d;
+                        }
+                    },
+                ]
+            });
+        };
+        return oTableInit;
+    };
+
+    /** -------------------------------------------------- 新增 */
+    // 新增
+    function add() {
+        $('#addModal').modal();
+    }
+
+    // 新增请求
+    function addRequest() {
+        // 验证规则
+        $('#addForm').bootstrapValidator({
+            message: '表单信息有误',
+            feedbackIcons: {
+                valid: 'glyphicon glyphicon-ok',
+                invalid: 'glyphicon glyphicon-remove',
+                validating: 'glyphicon glyphicon-refresh'
+            },
+            fields: {
+                name: {
+                    validators: {
+                        notEmpty: {
+                            message: '用户名不能为空'
+                        },
+                        stringLength: {
+                            min: 1,
+                            max: 18,
+                            message: '用户名长度必须在1到18位之间'
+                        }/*,
+                        regexp: {
+                            regexp: /^[a-zA-Z0-9_]+$/,
+                            message: '用户名只能包含大写、小写、数字和下划线'
+                        }*/
+                    }
+                },
+                email: {
+                    validators: {
+                        notEmpty: {
+                            message: '邮箱不能为空'
+                        },
+                        emailAddress: {
+                            message: '邮箱地址格式有误'
+                        }
+                    }
+                },
+                password: {
+                    validators: {
+                        notEmpty: {
+                            message: '密码不能为空'
+                        },
+                        stringLength: {
+                            min: 6,
+                            max: 32,
+                            message: '密码长度必须在6到32位之间'
+                        }
+                    }
+                },
+                address: {
+                    validators: {
+                        notEmpty: {
+                            message: '地址不能为空'
+                        }
+                    }
+                }
+            }
+        });
+        // 校验数据
+        $('#addForm').data('bootstrapValidator').validate();
+        // 判断结果
+        if (!$('#addForm').data('bootstrapValidator').isValid()) {
+            return;
+        }
+        $.ajax({
+            type: "POST",
+            url: "/user/insert",
+            data: formToJSON("#addForm"),
+            contentType: 'application/json',
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 1) {
+                    $('#addModal').modal('hide');
+                    $('#addForm')[0].reset();
+                    $('#addForm').bootstrapValidator('resetForm');
+                    $("#userTable").bootstrapTable("refresh", {silent: true});
+                    toastr.success(data.message);
+                } else {
+                    toastr.error(data.message);
+                }
+            },
+            error: function () {
+                toastr.error("网络连接异常，请检查网络是否稳定");
+            }
+        });
+    }
+
+    /** -------------------------------------------------- 查看 */
+    // 查看
+    function show(id) {
+        $.ajax({
+            type: "GET",
+            url: "/user/get/" + id,
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 1) {
+                    var user = data.data;
+                    $('#showId').text(user.id);
+                    $('#showName').text(user.name);
+                    $('#showPassword').text(user.password);
+                    $('#showEmail').text(user.email);
+                    $('#showAddress').text(user.address);
+                    $('#showModal').modal();
+                } else {
+                    toastr.warning(data.message);
+                }
+            },
+            error: function () {
+                toastr.error("网络连接异常，请检查网络是否稳定");
+            }
+        });
+    }
+
+    /** -------------------------------------------------- 编辑 */
+    // 编辑
+    function edit(id) {
+        $.ajax({
+            type: "GET",
+            url: "/user/get/" + id,
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 1) {
+                    var user = data.data;
+                    $('#editId').val(user.id);
+                    $('#editName').val(user.name);
+                    $('#editPassword').val(user.password);
+                    $('#editEmail').val(user.email);
+                    $('#editAddress').val(user.address);
+                    $('#editModal').modal();
+                } else {
+                    toastr.warning(data.message);
+                }
+            },
+            error: function () {
+                toastr.error("网络连接异常，请检查网络是否稳定");
+            }
+        });
+    }
+
+    // 编辑请求
+    function editRequest() {
+        // 验证规则
+        $('#editForm').bootstrapValidator({
+            message: '表单信息有误',
+            feedbackIcons: {
+                valid: 'glyphicon glyphicon-ok',
+                invalid: 'glyphicon glyphicon-remove',
+                validating: 'glyphicon glyphicon-refresh'
+            },
+            fields: {
+                id: {
+                    validators: {
+                        notEmpty: {
+                            message: '非法数据，请联系管理员'
+                        }
+                    }
+                },
+                name: {
+                    validators: {
+                        notEmpty: {
+                            message: '用户名不能为空'
+                        },
+                        stringLength: {
+                            min: 1,
+                            max: 18,
+                            message: '用户名长度必须在1到18位之间'
+                        }
+                    }
+                },
+                email: {
+                    validators: {
+                        notEmpty: {
+                            message: '邮箱不能为空'
+                        },
+                        emailAddress: {
+                            message: '邮箱地址格式有误'
+                        }
+                    }
+                },
+                password: {
+                    validators: {
+                        notEmpty: {
+                            message: '密码不能为空'
+                        },
+                        stringLength: {
+                            min: 6,
+                            max: 32,
+                            message: '密码长度必须在6到32位之间'
+                        }
+                    }
+                },
+                address: {
+                    validators: {
+                        notEmpty: {
+                            message: '地址不能为空'
+                        }
+                    }
+                }
+            }
+        });
+        // 校验数据
+        $('#editForm').data('bootstrapValidator').validate();
+        // 判断结果
+        if (!$('#editForm').data('bootstrapValidator').isValid()) {
+            return;
+        }
+        $.ajax({
+            type: "POST",
+            url: "/user/update",
+            data: formToJSON("#editForm"),
+            contentType: 'application/json',
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 1) {
+                    $('#editModal').modal('hide');
+                    $('#editForm')[0].reset();
+                    $('#editForm').bootstrapValidator('resetForm');
+                    $("#userTable").bootstrapTable("refresh", {silent: true});
+                    toastr.success(data.message);
+                } else {
+                    toastr.error(data.message);
+                }
+            },
+            error: function () {
+                toastr.error("网络连接异常，请检查网络是否稳定");
+            }
+        });
+    }
+
+    /** -------------------------------------------------- 删除 */
+    // 删除
+    function del(id) {
+        $("#delId").val(id);
+        $("#delModal").modal();
+    }
+
+    // 删除请求
+    function delRequest() {
+        $.ajax({
+            type: "POST",
+            url: "/user/delete",
+            data: {
+                id: $("#delId").val()
+            },
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 1) {
+                    $("#delModal").modal("hide");
+                    toastr.success(data.message);
+                    $("#userTable").bootstrapTable("refresh", {silent: true});
+                } else {
+                    toastr.warning(data.message);
+                }
+            },
+            error: function () {
+                toastr.error("网络连接异常，请检查网络是否稳定");
+            }
+        });
+    }
+
+    /** -------------------------------------------------- 批量删除 */
+    // 批量删除
+    function dels() {
+        // 获得选中的行
+        var obj = $.map($('#userTable').bootstrapTable('getSelections'), function (row) {
+            return row.id;
+        });
+        if (obj.length < 1) {
+            toastr.info("请选择要删除的选项");
+            return;
+        }
+        $("#delsId").val(obj);
+        $("#delsModal").modal();
+    }
+
+    // 批量删除请求
+    function delsRequest() {
+        $.ajax({
+            type: "POST",
+            url: "/user/deleteByIds",
+            data: {
+                ids: $("#delsId").val()
+            },
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 1) {
+                    $("#delsModal").modal("hide");
+                    toastr.success(data.message);
+                    $("#userTable").bootstrapTable("refresh", {silent: true});
+                } else {
+                    toastr.warning(data.message);
+                }
+            },
+            error: function () {
+                toastr.error("网络连接异常，请检查网络是否稳定");
+            }
+        });
+    }
+
+    /** -------------------------------------------------- 条件搜索 */
+    // 搜索
+    function search() {
+        $("#userTable").bootstrapTable("refresh", {silent: true});
+        // 高亮显示关键字，只支持name字段高亮，其余字段测试中
+        $("#userTable").on('post-body.bs.table', function () {
+            var searchName = $("input[name='searchName']").val();
+            /*var searchEmail = $("input[name='searchEmail']").val();
+            var searchAddress = $("input[name='searchAddress']").val();*/
+            var tableId = document.getElementById("userTable");
+            if (searchName != null) {
+                for (var i = 1; i < tableId.rows.length; i++) {
+                    var bb = tableId.rows[i].cells[2].innerHTML;
+                    var displayColor = '<strong style="color:red">' + searchName + '</strong>';
+                    var cc = bb.replace(new RegExp(searchName, 'ig'), displayColor);
+                    tableId.rows[i].cells[2].innerHTML = cc;
+                }
+            }
+
+            /*var searchName = $("input[name='searchName']").val();
+            var searchEmail = $("input[name='searchEmail']").val();
+            var searchAddress = $("input[name='searchAddress']").val();
+            var tableId = document.getElementById("userTable");
+            if (searchName != null) {
+                for (var i = 1; i < tableId.rows.length; i++) {
+                    var bb = tableId.rows[i].cells[2].innerHTML;
+                    var displayColor = '<strong style="color:red">' + searchName + '</strong>';
+                    var cc = bb.replace(new RegExp(searchName, 'ig'), displayColor);
+                    tableId.rows[i].cells[2].innerHTML = cc;
+                }
+            }
+            if (searchEmail != null) {
+                for (var i = 1; i < tableId.rows.length; i++) {
+                    var bb = tableId.rows[i].cells[4].innerHTML;
+                    var displayColor = '<strong style="color:red">' + searchEmail + '</strong>';
+                    var cc = bb.replace(new RegExp(searchEmail, 'ig'), displayColor);
+                    tableId.rows[i].cells[4].innerHTML = cc;
+                }
+            }
+            if (searchAddress != null) {
+                for (var i = 1; i < tableId.rows.length; i++) {
+                    var bb = tableId.rows[i].cells[5].innerHTML;
+                    var displayColor = '<strong style="color:red">' + searchAddress + '</strong>';
+                    var cc = bb.replace(new RegExp(searchAddress, 'ig'), displayColor);
+                    tableId.rows[i].cells[5].innerHTML = cc;
+                }
+            }*/
+        });
+    }
+</script>
+</html>

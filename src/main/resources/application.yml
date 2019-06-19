@@ -1,0 +1,23 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/spring-boot-crud?useSSL=false
+    username: root
+    password: 123456
+  thymeleaf:
+    mode: HTML5
+    cache: false
+    encoding: UTF-8
+    servlet:
+      content-type: text/html
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    cn.tellsea.mapper: debug
