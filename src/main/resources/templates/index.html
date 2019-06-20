@@ -13,7 +13,7 @@
             <div class="panel panel-default">
                 <div class="panel-heading">关键字搜索</div>
                 <div class="panel-body">
-                    <form class="form-inline">
+                    <form id="searchForm" class="form-inline">
                         <div class="form-group">
                             <label>用户名</label>
                             <input type="text" class="form-control" name="searchName">
@@ -462,51 +462,34 @@
     /** -------------------------------------------------- 条件搜索 */
     // 搜索
     function search() {
+        var searchName = $("input[name='searchName']").val();
+        var searchEmail = $("input[name='searchEmail']").val();
+        var searchAddress = $("input[name='searchAddress']").val();
         $("#userTable").bootstrapTable("refresh", {silent: true});
-        // 高亮显示关键字，只支持name字段高亮，其余字段测试中
-        /*$("#userTable").on('post-body.bs.table', function () {
-            var searchName = $("input[name='searchName']").val();
-            /!*var searchEmail = $("input[name='searchEmail']").val();
-            var searchAddress = $("input[name='searchAddress']").val();*!/
+        // 高亮显示关键字
+        $("#userTable").on('post-body.bs.table', function () {
             var tableId = document.getElementById("userTable");
-            if (searchName != null) {
-                for (var i = 1; i < tableId.rows.length; i++) {
-                    var bb = tableId.rows[i].cells[2].innerHTML;
+            for (var i = 1; i < tableId.rows.length; i++) {
+                if (searchName != null && searchName.length != 0) {
+                    var box = tableId.rows[i].cells[2].innerHTML;
                     var displayColor = '<strong style="color:red">' + searchName + '</strong>';
-                    var cc = bb.replace(new RegExp(searchName, 'ig'), displayColor);
-                    tableId.rows[i].cells[2].innerHTML = cc;
+                    var content = box.replace(new RegExp(searchName, 'ig'), displayColor);
+                    tableId.rows[i].cells[2].innerHTML = content;
                 }
-            }
-
-            /!*var searchName = $("input[name='searchName']").val();
-            var searchEmail = $("input[name='searchEmail']").val();
-            var searchAddress = $("input[name='searchAddress']").val();
-            var tableId = document.getElementById("userTable");
-            if (searchName != null) {
-                for (var i = 1; i < tableId.rows.length; i++) {
-                    var bb = tableId.rows[i].cells[2].innerHTML;
-                    var displayColor = '<strong style="color:red">' + searchName + '</strong>';
-                    var cc = bb.replace(new RegExp(searchName, 'ig'), displayColor);
-                    tableId.rows[i].cells[2].innerHTML = cc;
-                }
-            }
-            if (searchEmail != null) {
-                for (var i = 1; i < tableId.rows.length; i++) {
-                    var bb = tableId.rows[i].cells[4].innerHTML;
+                if (searchEmail != null && searchEmail.length != 0) {
+                    var box = tableId.rows[i].cells[4].innerHTML;
                     var displayColor = '<strong style="color:red">' + searchEmail + '</strong>';
-                    var cc = bb.replace(new RegExp(searchEmail, 'ig'), displayColor);
-                    tableId.rows[i].cells[4].innerHTML = cc;
+                    var content = box.replace(new RegExp(searchEmail + '', 'ig'), displayColor);
+                    tableId.rows[i].cells[4].innerHTML = content;
+                }
+                if (searchAddress != null && searchAddress.length != 0) {
+                    var box = tableId.rows[i].cells[5].innerHTML;
+                    var displayColor = '<strong style="color:red">' + searchAddress + '</strong>';
+                    var content = box.replace(new RegExp(searchAddress, 'ig'), displayColor);
+                    tableId.rows[i].cells[5].innerHTML = content;
                 }
             }
-            if (searchAddress != null) {
-                for (var i = 1; i < tableId.rows.length; i++) {
-                    var bb = tableId.rows[i].cells[5].innerHTML;
-                    var displayColor = '<strong style="color:red">' + searchAddress + '</strong>';
-                    var cc = bb.replace(new RegExp(searchAddress, 'ig'), displayColor);
-                    tableId.rows[i].cells[5].innerHTML = cc;
-                }
-            }*!/
-        });*/
+        });
     }
 </script>
 </html>
